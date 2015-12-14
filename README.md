@@ -309,16 +309,21 @@ hoodie.plugin(function (hoodie) {
 
 ### hoodie.reset
 
----
-
-🐕 **TO BE DONE**: [#12](https://github.com/hoodiehq/hoodie-client/issues/12)
-
----
-
 Reset hoodie client and emit `reset` event so plugins can reset as well.
+Returns and promise and passes a promise to the event handlers via an options object.
 
 ```js
-hoodie.reset()
+hoodie.reset().then(function () {
+  // do your thing
+})
+```
+
+```js
+hoodie.on('reset', function (options) {
+  options.promise = options.promise.then(function () {
+    // do some async reset here
+  })
+})
 ```
 
 Resolves without argument.
