@@ -37,8 +37,8 @@ function Hoodie (options) {
   api.off = require('./lib/events').off.bind(this, state)
   api.trigger = require('./lib/events').trigger.bind(this, state)
 
-  api.account.on('signin', function (session) {
-    api.store.db.__opts.ajax.headers.authorization = 'Bearer ' + session.id
+  api.account.on('signin', function (account) {
+    api.store.db.__opts.ajax.headers.authorization = 'Bearer ' + account.session.id
   })
   api.account.on('signout', function () {
     delete api.store.db.__opts.ajax.headers.authorization
