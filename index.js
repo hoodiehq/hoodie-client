@@ -39,6 +39,7 @@ function Hoodie (options) {
 
   api.account.on('signin', function (account) {
     api.store.db.__opts.ajax.headers.authorization = 'Bearer ' + account.session.id
+    api.store.connect()
   })
   api.account.on('signout', function () {
     delete api.store.db.__opts.ajax.headers.authorization
