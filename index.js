@@ -25,7 +25,7 @@ function Hoodie (options) {
   var dbName = 'user/' + api.id
   api.store = new CustomStore(dbName)
 
-  api.account = new Account({ url: api.url + '/account/api' })
+  api.account = new Account({ url: api.url + '/account/api', id: api.id })
   api.task = new Task('/hoodie/task/api')
   api.request = require('./lib/request').bind(this, state)
   api.connectionStatus = new ConnectionStatus(api.url)
