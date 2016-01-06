@@ -30,12 +30,12 @@ function Hoodie (options) {
   var dbName = 'user/' + api.id
   api.store = new CustomStore(dbName)
   api.on('reset', function (opts) {
-    opts.promise = opts.promise.then(api.store.clear)
+    opts.hooks.push(api.store.clear())
   })
 
   api.account = new Account({ url: api.url + '/account/api' })
   api.on('reset', function (opts) {
-    opts.promise = opts.promise.then(api.account.isSignedIn() ? api.account.signOut : null)
+    opts.hooks.push(api.account.isSignedIn() ? api.account.signOut() : null)
   })
 
   api.task = new Task('/hoodie/task/api')
