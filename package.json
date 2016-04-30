@@ -11,7 +11,7 @@
     "@hoodie/log": "^2.1.0",
     "@hoodie/store": "^1.0.0",
     "humble-localstorage": "^1.4.2",
-    "lie": "^3.0.1",
+    "lie": "^3.0.3",
     "nets": "^3.2.0"
   },
   "devDependencies": {
