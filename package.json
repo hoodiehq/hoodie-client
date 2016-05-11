@@ -18,7 +18,7 @@
     "browserify": "^13.0.0",
     "istanbul": "^0.4.1",
     "istanbul-coveralls": "^1.0.3",
-    "lodash": "^4.11.1",
+    "lodash": "^4.11.2",
     "mkdirp": "^0.5.1",
     "npm-run-all": "^2.0.0",
     "proxyquire": "^1.7.6",
