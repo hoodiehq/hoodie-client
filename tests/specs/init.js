@@ -225,6 +225,37 @@ test('"hoodie.store.push" is called on "pre:signout"', function (t) {
   hooks[0]()
 })
 
+test('"hoodie.store.push" returns better error message if local changes cannot be synced', function (t) {
+  t.plan(2)
+
+  var UnauthorizedError = new Error('unauthorized')
+  UnauthorizedError.status = 401
+
+  var hoodie = {
+    account: {
+      id: 0,
+      on: simple.stub(),
+      isSignedIn: simple.stub()
+    },
+    store: {
+      push: simple.stub().rejectWith(UnauthorizedError)
+    },
+    connectionStatus: {
+      on: simple.stub()
+    }
+  }
+
+  init(hoodie)
+  var signOutHandler = findEventHandler(hoodie.account.on.calls, 'pre:signout')
+  var hooks = []
+  signOutHandler({hooks: hooks})
+  t.is(hooks.length, 1, 'one pre:signout hook registered')
+  hooks[0]()
+    .catch(function (error) {
+      t.is(error.message, 'Local changes could not be synced, sign in first')
+    })
+})
+
 test('"hoodie.store.*" is *not* called when "hoodie.account.isSignedIn()" returns "false"', function (t) {
   t.plan(2)
 
