@@ -210,6 +210,7 @@ test('"hoodie.store.push" is called on "pre:signout"', function (t) {
     store: {
       push: function () {
         t.pass('store.push called on "signout"')
+        return {catch: function () {}}
       }
     },
     connectionStatus: {
