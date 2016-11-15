@@ -12,7 +12,7 @@
     "@hoodie/store-client": "^5.0.12",
     "humble-localstorage": "^1.4.2",
     "lie": "^3.0.1",
-    "lodash": "^4.11.1",
+    "lodash": "^4.17.1",
     "nets": "^3.2.0"
   },
   "devDependencies": {
