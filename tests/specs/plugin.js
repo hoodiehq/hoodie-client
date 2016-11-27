@@ -1,17 +1,26 @@
 var test = require('tape')
 var Hoodie = require('../../index')
 
+var PouchDBMock = function () {}
+PouchDBMock.defaults = function () {
+  return PouchDBMock
+}
+
 test('has "plugin" method', function (t) {
   t.plan(1)
 
-  var hoodie = new Hoodie()
+  var hoodie = new Hoodie({
+    PouchDB: PouchDBMock
+  })
   t.is(typeof hoodie.plugin, 'function', 'has method')
 })
 
 test('can define a plugin as a function', function (t) {
   t.plan(2)
 
-  var hoodie = new Hoodie()
+  var hoodie = new Hoodie({
+    PouchDB: PouchDBMock
+  })
   var sayHiPlugin = function (hoodie) {
     hoodie.sayHi = function () {
       return 'hi'
@@ -26,7 +35,9 @@ test('can define a plugin as a function', function (t) {
 test('can chain plugins calls', function (t) {
   t.plan(4)
 
-  var hoodie = new Hoodie()
+  var hoodie = new Hoodie({
+    PouchDB: PouchDBMock
+  })
   var sayHiPlugin = function (hoodie) {
     hoodie.sayHi = function () {
       return 'hi'
@@ -51,7 +62,9 @@ test('can chain plugins calls', function (t) {
 test('can define a plugin as an object', function (t) {
   t.plan(4)
 
-  var hoodie = new Hoodie()
+  var hoodie = new Hoodie({
+    PouchDB: PouchDBMock
+  })
   var sayHiPlugin = {
     sayHi: function () {
       return 'hi'

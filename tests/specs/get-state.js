@@ -8,7 +8,8 @@ test('getState preserves "account" property', function (t) {
   var options = {
     account: {
       id: 'id1'
-    }
+    },
+    PouchDB: function () {}
   }
 
   var state = getState(options)

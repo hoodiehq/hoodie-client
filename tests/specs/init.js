@@ -151,10 +151,9 @@ test('"hoodie.store.connect()" is *not* called when "hoodie.account.isSignedIn()
   t.is(hoodie.store.connect.callCount, 0, 'does not hoodie account.connect')
 })
 
-test('hoodie.store gets initialized with options.ajax', function (t) {
+test('hoodie.store gets initialized with options.PouchDB', function (t) {
   t.plan(1)
 
-  var CustomStoreMock = simple.stub()
   simple.mock(getApi.internals, 'Account', function () {
     return {
       get: function (path) {
@@ -164,38 +163,19 @@ test('hoodie.store gets initialized with options.ajax', function (t) {
       }
     }
   })
-  simple.mock(getApi.internals, 'Store', {
-    defaults: function () { return CustomStoreMock }
-  })
-
-  var state = getState()
-  getApi(state)
-
-  var storeAjaxParam = CustomStoreMock.lastCall.args[1]
-  t.is(storeAjaxParam.ajax().headers.authorization, 'Session session123',
-    'sets ajax authorization header')
-})
-
-test('hoodie.store initialization without session', function (t) {
-  t.plan(1)
-
   var CustomStoreMock = simple.stub()
-  simple.mock(getApi.internals, 'Account', function () {
-    return {
-      get: function (path) {
-        return undefined
-      }
-    }
-  })
-  simple.mock(getApi.internals, 'Store', {
-    defaults: function () { return CustomStoreMock }
-  })
+  simple.mock(getApi.internals.Store, 'defaults').returnWith(CustomStoreMock)
 
-  var state = getState()
+  var PouchDB = simple.stub()
+  simple.mock(PouchDB, 'defaults').returnWith(PouchDB)
+
+  var state = getState({
+    PouchDB: PouchDB
+  })
   getApi(state)
 
-  var storeAjaxParam = CustomStoreMock.lastCall.args[1]
-  t.is(storeAjaxParam.ajax(), undefined, 'no authorization header without session')
+  var storeDefaults = getApi.internals.Store.defaults.lastCall.args[0]
+  t.is(storeDefaults.PouchDB, PouchDB, 'sets options.PouchDB')
 })
 
 test('"hoodie.store.push" is called on "pre:signout"', function (t) {
@@ -396,6 +376,9 @@ test('options.account passed into Account constructor', function (t) {
     url: 'http://example.com',
     account: {
       id: 123
+    },
+    PouchDB: {
+      defaults: simple.stub()
     }
   }
   getApi.internals.Account = simple.stub().returnWith(state.account)
@@ -421,6 +404,9 @@ test('options.ConnectionStatus passed into ConnectionStatus constructor', functi
     url: 'http://example.com',
     connectionStatus: {
       interval: 10
+    },
+    PouchDB: {
+      defaults: simple.stub()
     }
   }
   getApi.internals.ConnectionStatus = simple.stub()
@@ -446,6 +432,9 @@ test('options.Log passed into Log constructor', function (t) {
     url: 'http://example.com',
     log: {
       styles: false
+    },
+    PouchDB: {
+      defaults: simple.stub()
     }
   }
   getApi.internals.Log = simple.stub()
