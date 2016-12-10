@@ -1,18 +1,9 @@
-var _ = require('lodash')
 var simple = require('simple-mock')
 var test = require('tape')
 
 var init = require('../../lib/init')
 var getApi = require('../../lib/get-api')
 var getState = require('../../lib/get-state')
-
-function findEventHandler (calls, name) {
-  var call = _.find(calls, function (call) {
-    return call.args[0] === name
-  })
-
-  return _.last(call.args)
-}
 
 test('"reset" triggered on "signin"', function (t) {
   t.plan(8)
@@ -23,7 +14,11 @@ test('"reset" triggered on "signin"', function (t) {
     account: {
       id: 'accountid1',
       on: simple.stub(),
-      isSignedIn: simple.stub()
+      isSignedIn: simple.stub(),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      }
     },
     store: {
       findAll: function () {
@@ -34,13 +29,13 @@ test('"reset" triggered on "signin"', function (t) {
         return Promise.resolve(existingObjects)
       },
       connect: function () {
-        t.pass('store.connect is called on "post:signin"')
+        t.pass('store.connect is called after signin')
         signInTestOrder.push('connect')
       },
       reset: function (options) {
         t.isNot(typeof options, 'undefined', 'store.reset options are defined')
         t.isNot(typeof options.name, 'undefined', 'store.reset options has defined name')
-        t.pass('store.reset called on "post:signin"')
+        t.pass('store.reset called after signin')
         signInTestOrder.push('reset')
 
         return Promise.resolve()
@@ -53,39 +48,34 @@ test('"reset" triggered on "signin"', function (t) {
 
   init(hoodie)
 
-  var preSignInHandler = findEventHandler(hoodie.account.on.calls, 'pre:signin')
-  var postSignInHandler = findEventHandler(hoodie.account.on.calls, 'post:signin')
+  var beforeSignInCall = hoodie.account.hook.before.calls[0]
+  var afterSignInCall = hoodie.account.hook.after.calls[0]
 
-  var preHooks = []
-  preSignInHandler({hooks: preHooks})
+  t.is(beforeSignInCall.args[0], 'signin', 'before signin hook registered')
+  t.is(afterSignInCall.args[0], 'signin', 'after signin hook registered')
 
-  var postHooks = []
-  postSignInHandler({hooks: postHooks})
-
-  t.is(preHooks.length, 1, 'one pre:signin hook registered')
-  t.is(postHooks.length, 1, 'one post:signin hook registered')
-  preHooks[0]().then(function () {
-    // simulate new account.id
-    hoodie.account.id = 'accountid2'
-  })
-
-  .then(postHooks[0])
+  var options = {}
+  beforeSignInCall.args[1](options)
+  options.beforeSignin.accountId = 'accountid2'
+  afterSignInCall.args[1]({}, options)
 
   .then(function () {
     t.deepEqual(signInTestOrder, ['reset', 'connect'], 'store.connect was called after store.reset')
   })
-
-  .catch(t.error)
 })
 
-test('is "reset" triggered on "post:signout"', function (t) {
+test('"reset" triggered after signout', function (t) {
   t.plan(4)
 
   var hoodie = {
     account: {
       id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub()
+      isSignedIn: simple.stub(),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      }
     },
     store: {
       reset: function (options) {
@@ -100,11 +90,10 @@ test('is "reset" triggered on "post:signout"', function (t) {
   }
 
   init(hoodie)
-  var signOutHandler = findEventHandler(hoodie.account.on.calls, 'post:signout')
-  var hooks = []
-  signOutHandler({hooks: hooks})
-  t.is(hooks.length, 1, 'one post:signout hook registered')
-  hooks[0]()
+
+  var afterHooks = hoodie.account.hook.after.calls
+  t.is(afterHooks[1].args[0], 'signout', 'after signout hook registered')
+  afterHooks[1].args[1]()
 })
 
 test('"hoodie.store.connect()" is called when "hoodie.account.isSignedIn()" returns "true" ', function (t) {
@@ -114,7 +103,11 @@ test('"hoodie.store.connect()" is called when "hoodie.account.isSignedIn()" retu
     account: {
       id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub().returnWith(true)
+      isSignedIn: simple.stub().returnWith(true),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      }
     },
     store: {
       connect: simple.stub(),
@@ -136,7 +129,11 @@ test('"hoodie.store.connect()" is *not* called when "hoodie.account.isSignedIn()
     account: {
       id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub().returnWith(false)
+      isSignedIn: simple.stub().returnWith(false),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      }
     },
     store: {
       connect: simple.stub(),
@@ -182,14 +179,18 @@ test('hoodie.store gets initialized with options.PouchDB', function (t) {
   t.is(storeDefaults.PouchDB, PouchDB, 'sets options.PouchDB')
 })
 
-test('"hoodie.store.push" is called on "pre:signout"', function (t) {
+test('"hoodie.store.push" is called before signout', function (t) {
   t.plan(2)
 
   var hoodie = {
     account: {
       id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub()
+      isSignedIn: simple.stub(),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      }
     },
     store: {
       push: function () {
@@ -203,11 +204,10 @@ test('"hoodie.store.push" is called on "pre:signout"', function (t) {
   }
 
   init(hoodie)
-  var signOutHandler = findEventHandler(hoodie.account.on.calls, 'pre:signout')
-  var hooks = []
-  signOutHandler({hooks: hooks})
-  t.is(hooks.length, 1, 'one pre:signout hook registered')
-  hooks[0]()
+
+  var beforeHooks = hoodie.account.hook.before.calls
+  t.is(beforeHooks[1].args[0], 'signout', 'before signout hook registered')
+  beforeHooks[1].args[1]()
 })
 
 test('"hoodie.store.push" returns better error message if local changes cannot be synced', function (t) {
@@ -220,7 +220,11 @@ test('"hoodie.store.push" returns better error message if local changes cannot b
     account: {
       id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub()
+      isSignedIn: simple.stub(),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      }
     },
     store: {
       push: simple.stub().rejectWith(UnauthorizedError)
@@ -231,11 +235,10 @@ test('"hoodie.store.push" returns better error message if local changes cannot b
   }
 
   init(hoodie)
-  var signOutHandler = findEventHandler(hoodie.account.on.calls, 'pre:signout')
-  var hooks = []
-  signOutHandler({hooks: hooks})
-  t.is(hooks.length, 1, 'one pre:signout hook registered')
-  hooks[0]()
+
+  var beforeHooks = hoodie.account.hook.before.calls
+  t.is(beforeHooks[1].args[0], 'signout', 'before signout hook registered')
+  beforeHooks[1].args[1]()
     .catch(function (error) {
       t.is(error.message, 'Local changes could not be synced, sign in first')
     })
@@ -248,7 +251,11 @@ test('"hoodie.store.*" is *not* called when "hoodie.account.isSignedIn()" return
     account: {
       id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub().returnWith(false)
+      isSignedIn: simple.stub().returnWith(false),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      }
     },
     store: {
       disconnect: simple.stub(),
@@ -273,7 +280,11 @@ test('"hoodie.store.*" is called on "disconnect" and "connect"', function (t) {
     account: {
       id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub().returnWith(true)
+      isSignedIn: simple.stub().returnWith(true),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      }
     },
     store: {
       disconnect: function (options) {
@@ -294,85 +305,6 @@ test('"hoodie.store.*" is called on "disconnect" and "connect"', function (t) {
   init(hoodie)
 })
 
-test('"dataFromAccountBeforeSignin" nulled on "signin"', function (t) {
-  t.plan(3)
-
-  var existingObjects = [{id: 'foo', createdBy: 'accountid1'}]
-  var hoodie = {
-    account: {
-      id: 'accountid1',
-      on: simple.stub(),
-      isSignedIn: simple.stub()
-    },
-    store: {
-      findAll: function () {
-        return Promise.resolve(existingObjects)
-      },
-      connect: function () {
-        t.pass('store.connect called on "signin"')
-      }
-    },
-    connectionStatus: {
-      on: simple.stub()
-    }
-  }
-
-  init(hoodie)
-  var preSignInHandler = findEventHandler(hoodie.account.on.calls, 'pre:signin')
-  var postSignInHandler = findEventHandler(hoodie.account.on.calls, 'post:signin')
-
-  var preHooks = []
-  preSignInHandler({hooks: preHooks})
-
-  var postHooks = []
-  postSignInHandler({hooks: postHooks})
-
-  t.is(preHooks.length, 1, 'one pre:signin hook registered')
-  t.is(postHooks.length, 1, 'one post:signin hook registered')
-  preHooks[0]()
-  .then(postHooks[0])
-})
-
-test('"signin" with Error', function (t) {
-  t.plan(2)
-
-  var existingObjects = [{id: 'foo', createdBy: 'accountid1'}]
-  var hoodie = {
-    account: {
-      id: 'accountid1',
-      on: simple.stub(),
-      isSignedIn: simple.stub()
-    },
-    store: {
-      findAll: function () {
-        return Promise.resolve(existingObjects)
-      },
-      reset: simple.stub().rejectWith(new Error('Ooops'))
-    },
-    connectionStatus: {
-      on: simple.stub()
-    }
-  }
-
-  init(hoodie)
-  var preSignInHandler = findEventHandler(hoodie.account.on.calls, 'pre:signin')
-  var postSignInHandler = findEventHandler(hoodie.account.on.calls, 'post:signin')
-
-  var preHooks = []
-  preSignInHandler({hooks: preHooks})
-
-  var postHooks = []
-  postSignInHandler({hooks: postHooks})
-
-  t.is(preHooks.length, 1, 'one pre:signin hook registered')
-  t.is(postHooks.length, 1, 'one post:signin hook registered')
-  preHooks[0]().then(function () {
-    // simulate new account.id
-    hoodie.account.id = 'accountid2'
-  })
-  .then(postHooks[0])
-})
-
 test('options.account passed into Account constructor', function (t) {
   t.plan(2)
 
@@ -381,11 +313,14 @@ test('options.account passed into Account constructor', function (t) {
     account: {
       id: 123
     },
-    PouchDB: {
-      defaults: simple.stub()
-    }
+    PouchDB: simple.stub()
   }
-  getApi.internals.Account = simple.stub().returnWith(state.account)
+  simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
+  simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
+  simple.mock(getApi.internals, 'Account').returnWith(state.account)
+  simple.mock(getApi.internals, 'Store', {
+    defaults: simple.stub().returnWith(simple.stub())
+  })
 
   getApi(state)
 
@@ -406,6 +341,9 @@ test('options.ConnectionStatus passed into ConnectionStatus constructor', functi
 
   var state = {
     url: 'http://example.com',
+    account: {
+      id: 123
+    },
     connectionStatus: {
       interval: 10
     },
@@ -413,7 +351,13 @@ test('options.ConnectionStatus passed into ConnectionStatus constructor', functi
       defaults: simple.stub()
     }
   }
-  getApi.internals.ConnectionStatus = simple.stub()
+  simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
+  simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
+  simple.mock(getApi.internals, 'Account').returnWith(state.account)
+  simple.mock(getApi.internals, 'Store', {
+    defaults: simple.stub().returnWith(simple.stub())
+  })
+  simple.mock(getApi.internals, 'ConnectionStatus').returnWith(simple.stub())
 
   getApi(state)
 
@@ -434,6 +378,9 @@ test('options.Log passed into Log constructor', function (t) {
 
   var state = {
     url: 'http://example.com',
+    account: {
+      id: 123
+    },
     log: {
       styles: false
     },
@@ -441,7 +388,13 @@ test('options.Log passed into Log constructor', function (t) {
       defaults: simple.stub()
     }
   }
-  getApi.internals.Log = simple.stub()
+  simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
+  simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
+  simple.mock(getApi.internals, 'Account').returnWith(state.account)
+  simple.mock(getApi.internals, 'Store', {
+    defaults: simple.stub().returnWith(simple.stub())
+  })
+  simple.mock(getApi.internals, 'Log').returnWith(simple.stub())
 
   getApi(state)
 
