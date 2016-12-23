@@ -6,7 +6,7 @@
     "url": "https://github.com/hoodiehq/hoodie-client/issues"
   },
   "dependencies": {
-    "@hoodie/account-client": "^4.4.0",
+    "@hoodie/account-client": "^5.0.0",
     "@hoodie/connection-status": "^3.0.0",
     "@hoodie/log": "^2.1.0",
     "@hoodie/store-client": "^6.0.0",
