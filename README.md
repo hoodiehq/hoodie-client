@@ -124,6 +124,28 @@ new Hoodie(options)
   </tr>
 </table>
 
+### hoodie.ready
+
+_Read-only_
+
+```js
+hoodie.ready
+```
+
+Promise that resolves once the hoodie API is fully initialised.
+
+Things like the the username or session ID are persisted in the local store and
+have to be loaded before APIs like `hoodie.account.id` can be used. It’s
+therefore necessary to wait until the hoodie API is ready before using it
+
+```js
+hoodie.ready.then(function () {
+  if (hoodie.account.isSignedIn()) {
+    alert('Welcome, ' + hoodie.account.username)
+  }
+})
+```
+
 ### hoodie.url
 
 _Read-only_
