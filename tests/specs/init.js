@@ -157,6 +157,13 @@ test('hoodie.store gets initialized with options.PouchDB', function (t) {
         return {
           id: path + '123'
         }
+      },
+      id: 'accountid1',
+      on: simple.stub(),
+      isSignedIn: simple.stub(),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
       }
     }
   })
@@ -166,17 +173,28 @@ test('hoodie.store gets initialized with options.PouchDB', function (t) {
   })
   simple.mock(getApi.internals.Store, 'defaults').returnWith(CustomStoreMock)
 
-  var PouchDB = simple.stub()
+  var PouchDB = simple.stub().returnWith({
+    doc: simple.stub().returnWith({
+      get: simple.stub().resolveWith({}),
+      set: simple.stub().resolveWith({}),
+      unset: simple.stub().resolveWith({})
+    })
+  })
   simple.mock(PouchDB, 'defaults').returnWith(PouchDB)
+  simple.mock(PouchDB, 'plugin').returnWith(PouchDB)
 
   var state = getState({
     PouchDB: PouchDB,
     url: 'http://localhost:1234/hoodie'
   })
-  getApi(state)
+  getApi(state).ready
 
-  var storeDefaults = getApi.internals.Store.defaults.lastCall.args[0]
-  t.is(storeDefaults.PouchDB, PouchDB, 'sets options.PouchDB')
+  .then(function () {
+    var storeDefaults = getApi.internals.Store.defaults.lastCall.args[0]
+    t.is(storeDefaults.PouchDB, PouchDB, 'sets options.PouchDB')
+  })
+
+  .catch(t.error)
 })
 
 test('"hoodie.store.push" is called before signout', function (t) {
@@ -308,12 +326,19 @@ test('"hoodie.store.*" is called on "disconnect" and "connect"', function (t) {
 test('options.account passed into Account constructor', function (t) {
   t.plan(2)
 
+  var cacheApi = {
+    get: simple.stub().resolveWith({}),
+    set: simple.stub().resolveWith({}),
+    unset: simple.stub().resolveWith({})
+  }
   var state = {
     url: 'http://example.com',
     account: {
       id: 123
     },
-    PouchDB: simple.stub()
+    PouchDB: simple.stub().returnWith({
+      doc: simple.stub().returnWith(cacheApi)
+    })
   }
   simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
   simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
@@ -326,7 +351,8 @@ test('options.account passed into Account constructor', function (t) {
 
   var expectedAccountArgs = {
     id: 123,
-    url: 'http://example.com/hoodie/account/api'
+    url: 'http://example.com/hoodie/account/api',
+    cache: cacheApi
   }
   t.is(getApi.internals.Account.callCount, 1, 'Account constructor called')
   t.deepEqual(
@@ -339,6 +365,15 @@ test('options.account passed into Account constructor', function (t) {
 test('options.ConnectionStatus passed into ConnectionStatus constructor', function (t) {
   t.plan(2)
 
+  var cacheApi = {
+    get: simple.stub().resolveWith({}),
+    set: simple.stub().resolveWith({}),
+    unset: simple.stub().resolveWith({})
+  }
+  var PouchDB = simple.stub().returnWith({
+    doc: simple.stub().returnWith(cacheApi)
+  })
+  PouchDB.defaults = simple.stub().returnWith(PouchDB)
   var state = {
     url: 'http://example.com',
     account: {
@@ -347,9 +382,7 @@ test('options.ConnectionStatus passed into ConnectionStatus constructor', functi
     connectionStatus: {
       interval: 10
     },
-    PouchDB: {
-      defaults: simple.stub()
-    }
+    PouchDB: PouchDB
   }
   simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
   simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
@@ -362,6 +395,7 @@ test('options.ConnectionStatus passed into ConnectionStatus constructor', functi
   getApi(state)
 
   var expectedConnectionStatusArgs = {
+    cache: cacheApi,
     interval: 10,
     url: 'http://example.com/hoodie'
   }
@@ -376,6 +410,14 @@ test('options.ConnectionStatus passed into ConnectionStatus constructor', functi
 test('options.Log passed into Log constructor', function (t) {
   t.plan(2)
 
+  var cacheApi = {
+    get: simple.stub().resolveWith({}),
+    set: simple.stub().resolveWith({}),
+    unset: simple.stub().resolveWith({})
+  }
+  var PouchDB = simple.stub().returnWith({
+    doc: simple.stub().returnWith(cacheApi)
+  })
   var state = {
     url: 'http://example.com',
     account: {
@@ -384,9 +426,7 @@ test('options.Log passed into Log constructor', function (t) {
     log: {
       styles: false
     },
-    PouchDB: {
-      defaults: simple.stub()
-    }
+    PouchDB: PouchDB
   }
   simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
   simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
