@@ -13,7 +13,8 @@
     "humble-localstorage": "^1.4.2",
     "lie": "^3.0.1",
     "lodash": "^4.11.1",
-    "nets": "^3.2.0"
+    "nets": "^3.2.0",
+    "pouchdb-doc-api": "^1.0.0"
   },
   "devDependencies": {
     "browserify": "^13.0.0",
