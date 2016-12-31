@@ -21,7 +21,7 @@
     "istanbul": "^0.4.1",
     "istanbul-coveralls": "^1.0.3",
     "mkdirp": "^0.5.1",
-    "npm-run-all": "^3.0.0",
+    "npm-run-all": "^4.0.0",
     "pouchdb-adapter-memory": "^6.0.7",
     "pouchdb-core": "^6.0.7",
     "pouchdb-replication": "^6.0.7",
