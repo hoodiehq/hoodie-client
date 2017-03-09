@@ -6,19 +6,20 @@ var getApi = require('../../lib/get-api')
 var getState = require('../../lib/get-state')
 
 test('"reset" triggered on "signin"', function (t) {
-  t.plan(8)
+  t.plan(7)
 
   var signInTestOrder = []
   var existingObjects = [{id: 'foo', createdBy: 'accountid1'}]
   var hoodie = {
     account: {
-      id: 'accountid1',
       on: simple.stub(),
-      isSignedIn: simple.stub(),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().callFn(function (path) {
+        return Promise.resolve(path === 'id' ? 'user123' : undefined)
+      })
     },
     store: {
       findAll: function () {
@@ -33,8 +34,7 @@ test('"reset" triggered on "signin"', function (t) {
         signInTestOrder.push('connect')
       },
       reset: function (options) {
-        t.isNot(typeof options, 'undefined', 'store.reset options are defined')
-        t.isNot(typeof options.name, 'undefined', 'store.reset options has defined name')
+        t.is(options, undefined, 'store.reset called without options')
         t.pass('store.reset called after signin')
         signInTestOrder.push('reset')
 
@@ -56,8 +56,11 @@ test('"reset" triggered on "signin"', function (t) {
 
   var options = {}
   beforeSignInCall.args[1](options)
-  options.beforeSignin.accountId = 'accountid2'
-  afterSignInCall.args[1]({}, options)
+
+  .then(function () {
+    options.beforeSignin.accountId = 'accountid2'
+    return afterSignInCall.args[1]({}, options)
+  })
 
   .then(function () {
     t.deepEqual(signInTestOrder, ['reset', 'connect'], 'store.connect was called after store.reset')
@@ -65,22 +68,20 @@ test('"reset" triggered on "signin"', function (t) {
 })
 
 test('"reset" triggered after signout', function (t) {
-  t.plan(4)
+  t.plan(3)
 
   var hoodie = {
     account: {
-      id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub(),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().resolveWith()
     },
     store: {
       reset: function (options) {
-        t.isNot(typeof options, 'undefined', 'store.reset options are defined')
-        t.isNot(typeof options.name, 'undefined', 'store.reset options has defined name')
+        t.is(options, undefined, 'store.reset called without options')
         t.pass('store.reset called on "signout"')
       }
     },
@@ -96,18 +97,22 @@ test('"reset" triggered after signout', function (t) {
   afterHooks[1].args[1]()
 })
 
-test('"hoodie.store.connect()" is called when "hoodie.account.isSignedIn()" returns "true" ', function (t) {
+test('"hoodie.store.connect()" is called when hoodie.account.get("sesion") resolves with nothing', function (t) {
   t.plan(1)
 
+  var session = {}
   var hoodie = {
     account: {
-      id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub().returnWith(true),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().returnWith({
+        then: function (callback) {
+          callback(session)
+        }
+      })
     },
     store: {
       connect: simple.stub(),
@@ -122,18 +127,17 @@ test('"hoodie.store.connect()" is called when "hoodie.account.isSignedIn()" retu
   t.is(hoodie.store.connect.callCount, 1, 'calls hoodie account.connect once')
 })
 
-test('"hoodie.store.connect()" is *not* called when "hoodie.account.isSignedIn()" returns "false"', function (t) {
+test('"hoodie.store.connect()" is *not* called when hoodie.account.get("session") resolves with undefined', function (t) {
   t.plan(1)
 
   var hoodie = {
     account: {
-      id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub().returnWith(false),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().resolveWith()
     },
     store: {
       connect: simple.stub(),
@@ -153,24 +157,18 @@ test('hoodie.store gets initialized with options.PouchDB', function (t) {
 
   simple.mock(getApi.internals, 'Account', function () {
     return {
-      get: function (path) {
-        return {
-          id: path + '123'
-        }
-      },
-      id: 'accountid1',
       on: simple.stub(),
-      isSignedIn: simple.stub(),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().resolveWith()
     }
   })
-  var CustomStoreMock = simple.stub()
-  simple.mock(getApi.internals, 'Store', {
-    defaults: function () { return CustomStoreMock }
+  var CustomStoreMock = simple.stub().returnWith({
+    connect: simple.stub()
   })
+  simple.mock(getApi.internals, 'Store', CustomStoreMock)
   simple.mock(getApi.internals.Store, 'defaults').returnWith(CustomStoreMock)
 
   var PouchDB = simple.stub().returnWith({
@@ -187,14 +185,9 @@ test('hoodie.store gets initialized with options.PouchDB', function (t) {
     PouchDB: PouchDB,
     url: 'http://localhost:1234/hoodie'
   })
-  getApi(state).ready
-
-  .then(function () {
-    var storeDefaults = getApi.internals.Store.defaults.lastCall.args[0]
-    t.is(storeDefaults.PouchDB, PouchDB, 'sets options.PouchDB')
-  })
-
-  .catch(t.error)
+  getApi(state)
+  var storeOptions = getApi.internals.Store.lastCall.args[1]
+  t.is(storeOptions.PouchDB, PouchDB, 'sets options.PouchDB')
 })
 
 test('"hoodie.store.push" is called before signout', function (t) {
@@ -202,13 +195,12 @@ test('"hoodie.store.push" is called before signout', function (t) {
 
   var hoodie = {
     account: {
-      id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub(),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().resolveWith()
     },
     store: {
       push: function () {
@@ -236,13 +228,12 @@ test('"hoodie.store.push" returns better error message if local changes cannot b
 
   var hoodie = {
     account: {
-      id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub(),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().resolveWith()
     },
     store: {
       push: simple.stub().rejectWith(UnauthorizedError)
@@ -262,18 +253,17 @@ test('"hoodie.store.push" returns better error message if local changes cannot b
     })
 })
 
-test('"hoodie.store.*" is *not* called when "hoodie.account.isSignedIn()" returns "false"', function (t) {
+test('"hoodie.store.*" is *not* called when hoodie.account.get("session") resolves with nothing', function (t) {
   t.plan(2)
 
   var hoodie = {
     account: {
-      id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub().returnWith(false),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().resolveWith()
     },
     store: {
       disconnect: simple.stub(),
@@ -294,15 +284,15 @@ test('"hoodie.store.*" is *not* called when "hoodie.account.isSignedIn()" return
 test('"hoodie.store.*" is called on "disconnect" and "connect"', function (t) {
   t.plan(2)
 
+  var session = {id: 'sessionid123'}
   var hoodie = {
     account: {
-      id: 0,
       on: simple.stub(),
-      isSignedIn: simple.stub().returnWith(true),
       hook: {
         before: simple.stub(),
         after: simple.stub()
-      }
+      },
+      get: simple.stub().resolveWith(session)
     },
     store: {
       disconnect: function (options) {
@@ -343,9 +333,8 @@ test('options.account passed into Account constructor', function (t) {
   simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
   simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
   simple.mock(getApi.internals, 'Account').returnWith(state.account)
-  simple.mock(getApi.internals, 'Store', {
-    defaults: simple.stub().returnWith(simple.stub())
-  })
+  simple.mock(getApi.internals, 'Store').returnWith(simple.stub())
+  simple.mock(getApi.internals, 'init').returnWith()
 
   getApi(state)
 
@@ -360,6 +349,8 @@ test('options.account passed into Account constructor', function (t) {
     expectedAccountArgs,
     'Account options passed into constructor'
   )
+
+  simple.restore()
 })
 
 test('options.ConnectionStatus passed into ConnectionStatus constructor', function (t) {
@@ -387,10 +378,9 @@ test('options.ConnectionStatus passed into ConnectionStatus constructor', functi
   simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
   simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
   simple.mock(getApi.internals, 'Account').returnWith(state.account)
-  simple.mock(getApi.internals, 'Store', {
-    defaults: simple.stub().returnWith(simple.stub())
-  })
+  simple.mock(getApi.internals, 'Store').returnWith(simple.stub())
   simple.mock(getApi.internals, 'ConnectionStatus').returnWith(simple.stub())
+  simple.mock(getApi.internals, 'init').returnWith()
 
   getApi(state)
 
@@ -431,10 +421,9 @@ test('options.Log passed into Log constructor', function (t) {
   simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
   simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
   simple.mock(getApi.internals, 'Account').returnWith(state.account)
-  simple.mock(getApi.internals, 'Store', {
-    defaults: simple.stub().returnWith(simple.stub())
-  })
+  simple.mock(getApi.internals, 'Store').returnWith(simple.stub())
   simple.mock(getApi.internals, 'Log').returnWith(simple.stub())
+  simple.mock(getApi.internals, 'init').returnWith()
 
   getApi(state)
 
