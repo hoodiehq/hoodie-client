@@ -6,10 +6,10 @@
     "url": "https://github.com/hoodiehq/hoodie-client/issues"
   },
   "dependencies": {
-    "@hoodie/account-client": "^5.0.0",
+    "@hoodie/account-client": "^6.0.0",
     "@hoodie/connection-status": "^4.0.1",
     "@hoodie/log": "^2.1.0",
-    "@hoodie/store-client": "^7.0.0",
+    "@hoodie/store-client": "^8.1.0",
     "lie": "^3.0.1",
     "lodash": "^4.11.1",
     "nets": "^3.2.0",
@@ -22,6 +22,7 @@
     "istanbul-coveralls": "^1.0.3",
     "mkdirp": "^0.5.1",
     "npm-run-all": "^4.0.0",
+    "pouchdb-adapter-http": "^6.1.2",
     "pouchdb-adapter-memory": "^6.0.7",
     "pouchdb-core": "^6.0.7",
     "pouchdb-replication": "^6.0.7",
