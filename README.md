@@ -97,8 +97,8 @@ new Hoodie(options)
     <td>
       <a href="https://github.com/hoodiehq/hoodie-store#constructor">store options</a>.
       <code>options.PouchDB</code> is always set to <a href="#constructor">Hoodie Client’s constructor</a>’s <code>options.PouchDB</code>.
-      <code>options.dbName</code> is always set to <code>hoodie.account.id</code>.
-      <code>options.remote</code> is always set to <code>hoodie.url</code> + '/store/api'.
+      <code>options.dbName</code> is always set to <code>'store'</code>.
+      <code>options.remote</code> is always set to <code>hoodie.url + '/store/api/user%2f' + account id</code>.
     </td>
     <td>No</td>
   </tr>
@@ -107,7 +107,7 @@ new Hoodie(options)
     <td>String</td>
     <td>
       <a href="https://github.com/hoodiehq/hoodie-client-task#constructor">task options</a>.
-      <code>options.userId</code> is always set to <code>hoodie.account.id</code>.
+      <code>options.userId</code> is always set to <code>account id</code>.
       <code>options.remote</code> is always set to <code>hoodie.url</code> + '/task/api'
     </td>
     <td>No</td>
@@ -123,28 +123,6 @@ new Hoodie(options)
     <td>No</td>
   </tr>
 </table>
-
-### hoodie.ready
-
-_Read-only_
-
-```js
-hoodie.ready
-```
-
-Promise that resolves once the hoodie API is fully initialised.
-
-Things like the the username or session ID are persisted in the local store and
-have to be loaded before APIs like `hoodie.account.id` can be used. It’s
-therefore necessary to wait until the hoodie API is ready before using it
-
-```js
-hoodie.ready.then(function () {
-  if (hoodie.account.isSignedIn()) {
-    alert('Welcome, ' + hoodie.account.username)
-  }
-})
-```
 
 ### hoodie.url
 
