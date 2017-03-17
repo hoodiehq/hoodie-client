@@ -475,3 +475,49 @@ test.only('hoodie store returns a PouchDB instance', function(t) {
   });
 
 })
+
+test('hoodie.store.connect() is called', function(t) {
+  t.plan(1)
+
+
+  var hoodie = {
+    account: {
+      on: simple.stub(),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      },
+      get: simple.stub().callFn(function (path) {
+        return Promise.resolve('hoodie')
+      }),
+      id: 'hoodie'
+    },
+    store: {
+      findAll: function () {
+        return Promise.resolve('hoodie')
+      },
+
+      connect: function () {
+        t.pass('store.connect is called after signin')
+      },
+
+    },
+    connectionStatus: {
+      on: simple.stub()
+    }
+  }
+
+  init(hoodie)
+
+  var beforeSignInCall = hoodie.account.hook.before.calls[0]
+  var afterSignInCall = hoodie.account.hook.after.calls[0]
+
+  t.is(beforeSignInCall.args[0], 'signin', 'before signin hook registered')
+  t.is(afterSignInCall.args[0], 'signin', 'after signin hook registered')
+  var options = {}
+  beforeSignInCall.args[1](options)
+
+  .then(function () {
+    return afterSignInCall.args[1](hoodie.account, options)
+  });
+})
