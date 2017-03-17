@@ -53,7 +53,6 @@ test('"reset" triggered on "signin"', function (t) {
 
   t.is(beforeSignInCall.args[0], 'signin', 'before signin hook registered')
   t.is(afterSignInCall.args[0], 'signin', 'after signin hook registered')
-
   var options = {}
   beforeSignInCall.args[1](options)
 
@@ -61,9 +60,8 @@ test('"reset" triggered on "signin"', function (t) {
     options.beforeSignin.accountId = 'accountid2'
     return afterSignInCall.args[1]({}, options)
   })
-
   .then(function () {
-    t.deepEqual(signInTestOrder, ['reset', 'connect'], 'store.connect was called after store.reset')
+    t.deepEqual(signInTestOrder, ['reset', 'connect'], 'store.con0nect was called after store.reset')
   })
 })
 
@@ -94,6 +92,7 @@ test('"reset" triggered after signout', function (t) {
 
   var afterHooks = hoodie.account.hook.after.calls
   t.is(afterHooks[1].args[0], 'signout', 'after signout hook registered')
+  console.log(afterHooks[1].args[0])
   afterHooks[1].args[1]()
 })
 
@@ -433,4 +432,46 @@ test('options.Log passed into Log constructor', function (t) {
   }
   t.is(getApi.internals.Log.callCount, 1, 'Log constructor called')
   t.deepEqual(getApi.internals.Log.lastCall.args[0], expectedLogArgs, 'Log options passed into constructor')
+})
+
+test.only('hoodie store returns a PouchDB instance', function(t) {
+  t.plan(1)
+
+  var cacheApi= {
+    get: simple.stub().resolveWith({}),
+    set: simple.stub().resolveWith({}),
+    unset: simple.stub().resolveWith({})
+  }
+  var pouchDBInstance = {
+    doc: simple.stub().returnWith(cacheApi)
+  }
+  var PouchDB= simple.stub().returnWith(pouchDBInstance)
+  var properties = {id:1234,session:{id:1234}}
+  var state={
+    url: "http://example.com",
+    account:{
+      get:simple.stub().resolveWith(properties),
+      id: 123
+    },
+    session: {
+      id: 000
+    },
+    log: {
+      styles: false
+    },
+     PouchDB: PouchDB
+  }
+
+  simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
+  simple.mock(state.PouchDB, 'plugin').returnWith(state.PouchDB)
+  simple.mock(getApi.internals, 'Account').returnWith(state.account)
+  simple.mock(getApi.internals, 'Store').returnWith(simple.stub())
+  simple.mock(getApi.internals, 'Log').returnWith(simple.stub())
+  simple.mock(getApi.internals, 'init').returnWith()
+
+  getApi(state)
+  getApi.internals.Store.lastCall.args[1].remote.then(function(s){
+    t.deepEqual(s,pouchDBInstance,"hoodie store returns a PouchDB instance")
+  });
+
 })
