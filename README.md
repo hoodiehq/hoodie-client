@@ -219,15 +219,6 @@ hoodie.request(options)
     </td>
     <td>No</td>
   </tr>
-  <tr>
-    <th align="left">options.data</th>
-    <td>Object, Array, String or Number</td>
-    <td>
-      For <code>PUT</code> and <code>POST</code> requests, an optional payload
-      can be sent. It will be stringified before sending the request.
-    </td>
-    <td>No</td>
-  </tr>
 </table>
 
 Examples
