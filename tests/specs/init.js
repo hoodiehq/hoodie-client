@@ -434,7 +434,7 @@ test('options.Log passed into Log constructor', function (t) {
   t.deepEqual(getApi.internals.Log.lastCall.args[0], expectedLogArgs, 'Log options passed into constructor')
 })
 
-test.only('hoodie store returns a PouchDB instance', function(t) {
+test('hoodie store returns a PouchDB instance', function(t) {
   t.plan(1)
 
   var cacheApi= {
@@ -477,7 +477,7 @@ test.only('hoodie store returns a PouchDB instance', function(t) {
 })
 
 test('hoodie.store.connect() is called', function(t) {
-  t.plan(1)
+  t.plan(4)
 
 
   var hoodie = {
@@ -520,4 +520,63 @@ test('hoodie.store.connect() is called', function(t) {
   .then(function () {
     return afterSignInCall.args[1](hoodie.account, options)
   });
+})
+test('hoodie.account.hook.before returns an error', function(t) {
+  t.plan(2)
+
+  var UnauthorizedError = new Error('unauthorized')
+  UnauthorizedError.status = 000
+
+  var hoodie = {
+    account: {
+      on: simple.stub(),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      },
+      get: simple.stub().resolveWith()
+    },
+    store: {
+      push: simple.stub().rejectWith(UnauthorizedError)
+    },
+    connectionStatus: {
+      on: simple.stub()
+    }
+  }
+
+  init(hoodie)
+
+  var beforeHooks = hoodie.account.hook.before.calls
+  console.log(beforeHooks[1].args[1])
+  t.is(beforeHooks[1].args[0], 'signout', 'before signout hook registered')
+  beforeHooks[1].args[1]()
+    .catch(function (error) {
+      t.is(error, UnauthorizedError,'returns an error if error code is not 401')
+    })
+})
+
+test('signed in,but invalid session', function(t) {
+  t.plan(1)
+
+  var hoodie = {
+    account: {
+      on: simple.stub(),
+      hook: {
+        before: simple.stub(),
+        after: simple.stub()
+      },
+      get: simple.stub().resolveWith({invalid:true})
+    },
+  store: {
+    connect: simple.stub(),
+    reset: simple.stub()
+  },
+  connectionStatus: {
+    on: simple.stub()
+  }
+}
+
+init(hoodie)
+t.is(hoodie.store.connect.callCount, 0, 'invalid session created and checked')
+
 })
