@@ -61,7 +61,7 @@ test('"reset" triggered on "signin"', function (t) {
     return afterSignInCall.args[1]({}, options)
   })
   .then(function () {
-    t.deepEqual(signInTestOrder, ['reset', 'connect'], 'store.con0nect was called after store.reset')
+    t.deepEqual(signInTestOrder, ['reset', 'connect'], 'store.connect was called after store.reset')
   })
 })
 
