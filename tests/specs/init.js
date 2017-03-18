@@ -434,10 +434,10 @@ test('options.Log passed into Log constructor', function (t) {
   t.deepEqual(getApi.internals.Log.lastCall.args[0], expectedLogArgs, 'Log options passed into constructor')
 })
 
-test('hoodie store returns a PouchDB instance', function(t) {
+test('hoodie store returns a PouchDB instance', function (t) {
   t.plan(1)
 
-  var cacheApi= {
+  var cacheApi = {
     get: simple.stub().resolveWith({}),
     set: simple.stub().resolveWith({}),
     unset: simple.stub().resolveWith({})
@@ -445,21 +445,21 @@ test('hoodie store returns a PouchDB instance', function(t) {
   var pouchDBInstance = {
     doc: simple.stub().returnWith(cacheApi)
   }
-  var PouchDB= simple.stub().returnWith(pouchDBInstance)
-  var properties = {id:1234,session:{id:1234}}
-  var state={
-    url: "http://example.com",
-    account:{
-      get:simple.stub().resolveWith(properties),
+  var PouchDB = simple.stub().returnWith(pouchDBInstance)
+  var properties = {id: 1234, session: {id: 1234}}
+  var state = {
+    url: 'http://example.com',
+    account: {
+      get: simple.stub().resolveWith(properties),
       id: 123
     },
     session: {
-      id: 000
+      id: 123
     },
     log: {
       styles: false
     },
-     PouchDB: PouchDB
+    PouchDB: PouchDB
   }
 
   simple.mock(state.PouchDB, 'defaults').returnWith(state.PouchDB)
@@ -470,15 +470,13 @@ test('hoodie store returns a PouchDB instance', function(t) {
   simple.mock(getApi.internals, 'init').returnWith()
 
   getApi(state)
-  getApi.internals.Store.lastCall.args[1].remote.then(function(s){
-    t.deepEqual(s,pouchDBInstance,"hoodie store returns a PouchDB instance")
-  });
-
+  getApi.internals.Store.lastCall.args[1].remote.then(function (s) {
+    t.deepEqual(s, pouchDBInstance, 'hoodie store returns a PouchDB instance')
+  })
 })
 
-test('hoodie.store.connect() is called', function(t) {
+test('hoodie.store.connect() is called', function (t) {
   t.plan(4)
-
 
   var hoodie = {
     account: {
@@ -499,7 +497,7 @@ test('hoodie.store.connect() is called', function(t) {
 
       connect: function () {
         t.pass('store.connect is called after signin')
-      },
+      }
 
     },
     connectionStatus: {
@@ -519,13 +517,13 @@ test('hoodie.store.connect() is called', function(t) {
 
   .then(function () {
     return afterSignInCall.args[1](hoodie.account, options)
-  });
+  })
 })
-test('hoodie.account.hook.before returns an error', function(t) {
+test('hoodie.account.hook.before returns an error', function (t) {
   t.plan(2)
 
   var UnauthorizedError = new Error('unauthorized')
-  UnauthorizedError.status = 000
+  UnauthorizedError.status = 123
 
   var hoodie = {
     account: {
@@ -551,11 +549,11 @@ test('hoodie.account.hook.before returns an error', function(t) {
   t.is(beforeHooks[1].args[0], 'signout', 'before signout hook registered')
   beforeHooks[1].args[1]()
     .catch(function (error) {
-      t.is(error, UnauthorizedError,'returns an error if error code is not 401')
+      t.is(error, UnauthorizedError, 'returns an error if error code is not 401')
     })
 })
 
-test('signed in,but invalid session', function(t) {
+test('signed in,but invalid session', function (t) {
   t.plan(1)
 
   var hoodie = {
@@ -565,18 +563,17 @@ test('signed in,but invalid session', function(t) {
         before: simple.stub(),
         after: simple.stub()
       },
-      get: simple.stub().resolveWith({invalid:true})
+      get: simple.stub().resolveWith({invalid: true})
     },
-  store: {
-    connect: simple.stub(),
-    reset: simple.stub()
-  },
-  connectionStatus: {
-    on: simple.stub()
+    store: {
+      connect: simple.stub(),
+      reset: simple.stub()
+    },
+    connectionStatus: {
+      on: simple.stub()
+    }
   }
-}
 
-init(hoodie)
-t.is(hoodie.store.connect.callCount, 0, 'invalid session created and checked')
-
+  init(hoodie)
+  t.is(hoodie.store.connect.callCount, 0, 'invalid session created and checked')
 })
