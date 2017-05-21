@@ -2,6 +2,7 @@
 .DS_Store
 coverage
 node_modules
+bower_components
 # Sorry, some folks need that eslint
 .eslintrc
 
