@@ -1,0 +1,22 @@
+{
+  "name": "hoodie-client",
+  "description": "Client API for the Hoodie server",
+  "main": "index.js",
+  "authors": [
+    "The Hoodie Community and other contributors | http://hood.ie/"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "hoodie",
+    "nobackend",
+    "offlinefirst"
+  ],
+  "homepage": "https://github.com/hoodiehq/hoodie-client#readme",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "tests",
+    "coverage"
+  ]
+}
