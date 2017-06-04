@@ -33,6 +33,21 @@ test('can define a plugin as a function', function (t) {
   t.is(hoodie.sayHi(), 'hi', 'plugin returns expected result')
 })
 
+test('passes options to hoodie.plugin', function (t) {
+  t.plan(2)
+
+  var hoodie = new Hoodie({
+    PouchDB: PouchDBMock,
+    url: 'http://localhost:1234/hoodie',
+    foo: 'bar'
+  })
+
+  hoodie.plugin(function (hoodie, options) {
+    t.is(options.url, 'http://localhost:1234/hoodie')
+    t.is(options.foo, 'bar')
+  })
+})
+
 test('can chain plugins calls', function (t) {
   t.plan(4)
 
