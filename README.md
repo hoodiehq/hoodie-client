@@ -43,7 +43,6 @@ hoodie.account.signUp({
 - [hoodie.log](#hoodielog)
 - [hoodie.request](#hoodierequest)
 - [hoodie.plugin](#hoodieplugin)
-- [hoodie.reset](#hoodiereset)
 - [hoodie.on](#hoodieon)
 - [hoodie.one](#hoodieone)
 - [hoodie.off](#hoodieoff)
@@ -291,22 +290,6 @@ hoodie.plugin(function (hoodie) {
 })
 ```
 
-### hoodie.reset
-
----
-
-🐕 **TO BE DONE**: [#12](https://github.com/hoodiehq/hoodie-client/issues/12)
-
----
-
-Reset hoodie client and emit `reset` event so plugins can reset as well.
-
-```js
-hoodie.reset()
-```
-
-Resolves without argument.
-
 ### hoodie.on
 
 Subscribe to event.
@@ -376,10 +359,6 @@ hoodie.trigger('mycustomevent', { foo: 'bar' })
 ### Events
 
 <table>
-  <tr>
-    <th align="left"><code>reset</code></th>
-    <td>triggered when <code>hoodie.reset()</code> succeeded</td>
-  </tr>
   <tr>
     <th align="left"><code>account:*</code></th>
     <td>events, see <a href="https://github.com/hoodiehq/hoodie-account-client#events">account events</a></td>
