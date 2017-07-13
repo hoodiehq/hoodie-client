@@ -24,7 +24,7 @@
     "npm-run-all": "^4.0.0",
     "pouchdb-adapter-http": "^6.1.2",
     "pouchdb-adapter-memory": "^6.0.7",
-    "pouchdb-core": "^6.0.7",
+    "pouchdb-core": "^6.3.2",
     "pouchdb-replication": "^6.0.7",
     "proxyquire": "^1.7.6",
     "rimraf": "^2.4.3",
