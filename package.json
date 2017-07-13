@@ -22,7 +22,7 @@
     "istanbul-coveralls": "^1.0.3",
     "mkdirp": "^0.5.1",
     "npm-run-all": "^4.0.0",
-    "pouchdb-adapter-http": "^6.1.2",
+    "pouchdb-adapter-http": "^6.3.2",
     "pouchdb-adapter-memory": "^6.0.7",
     "pouchdb-core": "^6.0.7",
     "pouchdb-replication": "^6.0.7",
