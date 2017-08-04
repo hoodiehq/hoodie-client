@@ -129,3 +129,18 @@ test('"trigger" returns an object', function (t) {
 
   t.is(typeof hoodie.trigger('account:signin'), 'object', 'returns an object')
 })
+
+test('"trigger" accepts optional arguments', function (t) {
+  t.plan(1)
+
+  var hoodie = new Hoodie({
+    PouchDB: PouchDBMock,
+    url: 'http://localhost:1234/hoodie'
+  })
+
+  hoodie.on('account:signin', function (options) {
+    t.is(typeof options, 'object', 'accepts optional arguments')
+  })
+
+  hoodie.trigger('account:signin', {})
+})
