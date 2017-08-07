@@ -131,16 +131,22 @@ test('"trigger" returns an object', function (t) {
 })
 
 test('"trigger" accepts optional arguments', function (t) {
-  t.plan(1)
+  t.plan(3)
 
   var hoodie = new Hoodie({
     PouchDB: PouchDBMock,
     url: 'http://localhost:1234/hoodie'
   })
 
-  hoodie.on('account:signin', function (options) {
-    t.is(typeof options, 'object', 'accepts optional arguments')
+  var option1 = 'option1'
+  var option2 = 'option2'
+  var option3 = 'option3'
+
+  hoodie.on('account:signin', function () {
+    t.equal(arguments[0], option1, 'receives the first argument')
+    t.equal(arguments[1], option2, 'receives the second argument')
+    t.equal(arguments[2], option3, 'receives the third argument')
   })
 
-  hoodie.trigger('account:signin', {})
+  hoodie.trigger('account:signin', option1, option2, option3)
 })
