@@ -58,7 +58,7 @@
     "disabled-build:raw:min": "browserify -s Hoodie -g uglifyify index.js | uglifyjs -c -o dist/hoodie.min.js",
     "prebuild": "rimraf dist && mkdirp dist",
     "prepublish": "npm run build",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "semantic-release": "semantic-release",
     "pretest": "standard",
     "test": "npm run -s test:node | tap-spec",
     "test:coverage": "istanbul cover tests",
