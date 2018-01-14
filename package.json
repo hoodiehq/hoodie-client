@@ -1,5 +1,6 @@
 {
   "name": "@hoodie/client",
+  "version": "0.0.0-development",
   "description": "Client API for the Hoodie server",
   "author": "The Hoodie Community and other contributors | http://hood.ie/",
   "bugs": {
