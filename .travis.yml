@@ -1,16 +1,33 @@
-sudo: false
 language: node_js
-notifications:
-  email: false
-node_js:
-  - 4
-  - 6
-  - 8
-before_script:
-  - npm prune
 after_success:
   - npm run test:coverage && npm run test:coverage:upload
   - npm run semantic-release
+
+# Trigger a push build on master and greenkeeper branches + PRs build on every branches
+# Avoid double build on PRs (See https://github.com/travis-ci/travis-ci/issues/1147)
 branches:
-  except:
-    - /^v\d+\.\d+\.\d+$/
+  only:
+    - master
+    - /^greenkeeper.*$/
+    
+# speed up builds: don’t run semantic-release on PRs
+stages:
+  - test
+  - name: release
+    if: branch = master AND type IN (push)
+
+jobs:
+  include:
+    # run tests in all supported node versions
+    # upload coverage only once
+    - node_js: 4
+    - node_js: 6
+    - node_js: 8
+      script:
+        - npm run test
+        - npm run test:coverage
+        - npm run test:coverage:upload
+    - stage: release
+      node_js: lts/*
+      script:
+        - npm run semantic-release
