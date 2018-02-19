@@ -56,13 +56,13 @@ test('"reset" triggered on "signin"', function (t) {
   var options = {}
   beforeSignInCall.args[1](options)
 
-  .then(function () {
-    options.beforeSignin.accountId = 'accountid2'
-    return afterSignInCall.args[1]({}, options)
-  })
-  .then(function () {
-    t.deepEqual(signInTestOrder, ['reset', 'connect'], 'store.connect was called after store.reset')
-  })
+    .then(function () {
+      options.beforeSignin.accountId = 'accountid2'
+      return afterSignInCall.args[1]({}, options)
+    })
+    .then(function () {
+      t.deepEqual(signInTestOrder, ['reset', 'connect'], 'store.connect was called after store.reset')
+    })
 })
 
 test('"reset" triggered after signout', function (t) {
@@ -515,9 +515,9 @@ test('hoodie.store.connect() is called', function (t) {
   var options = {}
   beforeSignInCall.args[1](options)
 
-  .then(function () {
-    return afterSignInCall.args[1](hoodie.account, options)
-  })
+    .then(function () {
+      return afterSignInCall.args[1](hoodie.account, options)
+    })
 })
 test('hoodie.account.hook.before returns an error', function (t) {
   t.plan(2)
