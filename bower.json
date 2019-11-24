@@ -1,0 +1,32 @@
+{
+  "name": "hoodie-client",
+  "description": "Client API for the Hoodie server",
+  "main": "index.js",
+  "authors": [
+    "The Hoodie Community and other contributors | http://hood.ie/"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "hoodie",
+    "nobackend",
+    "offlinefirst"
+  ],
+  "homepage": "https://github.com/hoodiehq/hoodie-client#readme",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "tests",
+    "coverage"
+  ],
+  "dependencies": {
+    "hoodie-account-client": "^6.0.0",
+    "hoodie-connection-status": "^4.0.1",
+    "hoodie-log": "^2.1.0",
+    "hoodie-store-client": "^8.1.0",
+    "lie": "^3.0.1",
+    "lodash": "^4.11.1",
+    "nets": "^3.2.0",
+    "pouchdb-doc-api": "^1.0.0"
+  }
+}
